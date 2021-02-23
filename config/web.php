@@ -69,7 +69,7 @@ if (YII_ENV_DEV) {
         'class' => 'yii\gii\Module',
         'generators' => [
             'extension' => [
-                'class' => 'yii\gii\generators\extension\Generator',
+                'class' => 'app\templates\inquid\extension\Generator',
                 'templates' => [
                     'InquidExtension' => '@app/templates/inquid/extension/default',
                 ]

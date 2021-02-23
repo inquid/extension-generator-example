@@ -1,8 +1,8 @@
 {
     "name": "<?= $generator->vendorName ?>/<?= $generator->packageName ?>",
-    "description": "<?= $generator->description ?>",
     "type": "<?= $generator->type ?>",
-    "keywords": <?= $generator->keywordsArrayJson ?>,
+    "description": "<?= $generator->description ?>",
+    "homepage": "https://github.com/<?= $generator->vendorName ?>/<?= $generator->packageName ?>",
     "license": "<?= $generator->license ?>",
     "authors": [
         {
@@ -11,11 +11,49 @@
         }
     ],
     "require": {
-        "../../../../vendor/yiisoft/yii2": "~2.0.0"
+        "php": "^7.3 || ^8.0"
+    },
+    "require-dev": {
+        "ergebnis/composer-normalize": "^2.13.2",
+        "ergebnis/license": "^1.1.0",
+        "ergebnis/php-cs-fixer-config": "~2.13.0",
+        "ergebnis/phpstan-rules": "~0.15.3",
+        "ergebnis/test-util": "^1.4.0",
+        "infection/infection": "~0.18.2",
+        "phpstan/extension-installer": "^1.1.0",
+        "phpstan/phpstan": "~0.12.75",
+        "phpstan/phpstan-deprecation-rules": "~0.12.6",
+        "phpstan/phpstan-phpunit": "~0.12.17",
+        "phpstan/phpstan-strict-rules": "~0.12.9",
+        "phpunit/phpunit": "~9.2.6",
+        "psalm/plugin-phpunit": "~0.15.1",
+        "vimeo/psalm": "^4.5.1"
+    },
+    "config": {
+        "platform": {
+            "php": "7.3.24"
+        },
+        "preferred-install": "dist",
+        "sort-packages": true
+    },
+    "extra": {
+        "composer-normalize": {
+            "indent-size": 2,
+            "indent-style": "space"
+        }
     },
     "autoload": {
         "psr-4": {
-            "<?= str_replace('\\','\\\\',$generator->namespace) ?>": ""
+            "<?= addslashes(substr($generator->namespace, 0, -1)) ?>\\": "src/"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "<?= addslashes(substr($generator->namespace, 0, -1)) ?>\\Test\\": "test/"
+        }
+    },
+    "support": {
+        "issues": "https://github.com/<?= $generator->vendorName ?>/<?= $generator->packageName ?>/issues",
+        "source": "https://github.com/<?= $generator->vendorName ?>/<?= $generator->packageName ?>"
     }
-}
+

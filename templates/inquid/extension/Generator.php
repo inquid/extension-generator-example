@@ -23,10 +23,10 @@ use yii\gii\CodeFile;
 class Generator extends \yii\gii\Generator
 {
     public $vendorName;
-    public $packageName = "yii2-";
+    public $packageName = "yii-";
     public $namespace;
-    public $type = "yii2-extension";
-    public $keywords = "yii2,extension";
+    public $type = "yii-extension";
+    public $keywords = "yii,extension";
     public $title;
     public $description;
     public $outputPath = "@app/runtime/tmp-extensions";
@@ -38,23 +38,23 @@ class Generator extends \yii\gii\Generator
     /**
      * {@inheritdoc}
      */
-    public function getName()
+    public function getName(): string
     {
-        return 'Extension Generator';
+        return 'Inquid Extension Generator';
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getDescription()
+    public function getDescription(): string
     {
-        return 'This generator helps you to generate the files needed by a Yii extension.';
+        return "This generator helps you to generate the Yii extension using Inquid's advanced template.";
     }
 
     /**
      * {@inheritdoc}
      */
-    public function rules()
+    public function rules(): array
     {
         return array_merge(
             parent::rules(),
@@ -96,7 +96,7 @@ class Generator extends \yii\gii\Generator
     /**
      * {@inheritdoc}
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'vendorName'  => 'Vendor Name',
@@ -108,11 +108,11 @@ class Generator extends \yii\gii\Generator
     /**
      * {@inheritdoc}
      */
-    public function hints()
+    public function hints(): array
     {
         return [
             'vendorName'  => 'This refers to the name of the publisher, your GitHub user name is usually a good choice, eg. <code>myself</code>.',
-            'packageName' => 'This is the name of the extension on packagist, eg. <code>yii2-foobar</code>.',
+            'packageName' => 'This is the name of the extension on packagist, eg. <code>yii-foobar</code>.',
             'namespace'   => 'PSR-4, eg. <code>myself\foobar\</code> This will be added to your autoloading by composer. Do not use yii, yii2 or yiisoft in the namespace.',
             'keywords'    => 'Comma separated keywords for this extension.',
             'outputPath'  => 'The temporary location of the generated files.',
@@ -124,7 +124,7 @@ class Generator extends \yii\gii\Generator
     /**
      * {@inheritdoc}
      */
-    public function stickyAttributes()
+    public function stickyAttributes(): array
     {
         return ['vendorName', 'outputPath', 'authorName', 'authorEmail'];
     }
@@ -132,9 +132,9 @@ class Generator extends \yii\gii\Generator
     /**
      * {@inheritdoc}
      */
-    public function successMessage()
+    public function successMessage(): string
     {
-        $outputPath = realpath(\Yii::getAlias($this->outputPath));
+        $outputPath = realpath(Yii::getAlias($this->outputPath));
         $output1 = <<<EOD
 <p><em>The extension has been generated successfully.</em></p>
 <p>To enable it in your application, you need to create a git repository
@@ -146,7 +146,7 @@ cd {$outputPath}/{$this->packageName}
 git init
 git add -A
 git commit
-git remote add origin https://path.to/your/repo
+git remote add origin https://github.com/inquid/{$this->packageName}
 git push -u origin master
 EOD;
         $output2 = <<<EOD
@@ -157,7 +157,7 @@ EOD;
 "repositories":[
     {
         "type": "git",
-        "url": "https://path.to/your/repo"
+        "url": "https://path.to/your/{$this->packageName}"
     }
 ]
 EOD;
@@ -190,25 +190,26 @@ EOD;
     /**
      * {@inheritdoc}
      */
-    public function requiredTemplates()
+    public function requiredTemplates(): array
     {
-        return ['composer.json', 'AutoloadExample.php', 'README.md'];
+        return ['composer.json', 'src/AutoloadExample.php', 'README.md'];
     }
 
     /**
      * {@inheritdoc}
      */
-    public function generate()
+    public function generate(): array
     {
         $files = [];
         $modulePath = $this->getOutputPath();
+        Yii::debug($modulePath);
         $files[] = new CodeFile(
             $modulePath . '/' . $this->packageName . '/composer.json',
             $this->render("composer.json")
         );
         $files[] = new CodeFile(
-            $modulePath . '/' . $this->packageName . '/AutoloadExample.php',
-            $this->render("AutoloadExample.php")
+            $modulePath . '/' . $this->packageName . '/src/AutoloadExample.php',
+            $this->render("src/AutoloadExample.php")
         );
         $files[] = new CodeFile(
             $modulePath . '/' . $this->packageName . '/README.md',
@@ -216,6 +217,20 @@ EOD;
         );
 
         return $files;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function save($files, $answers, &$results): bool
+    {
+        $save = parent::save($files, $answers, $results);
+        $modulePath = $this->getOutputPath();
+
+        // Copy all the files which won't be modified
+        $this->custom_copy($this->getTemplatePath() . '/static_files', $modulePath . '/' . $this->packageName);
+
+        return $save;
     }
 
     /**
@@ -229,7 +244,7 @@ EOD;
     /**
      * @return string a json encoded array with the given keywords
      */
-    public function getKeywordsArrayJson()
+    public function getKeywordsArrayJson(): string
     {
         return json_encode(explode(',', $this->keywords), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     }
@@ -237,10 +252,10 @@ EOD;
     /**
      * @return array options for type drop-down
      */
-    public function optsType()
+    public function optsType(): array
     {
         $types = [
-            'yii2-extension',
+            'yii-extension',
             'library',
         ];
 
@@ -250,7 +265,7 @@ EOD;
     /**
      * @return array options for license drop-down
      */
-    public function optsLicense()
+    public function optsLicense(): array
     {
         $licenses = [
             'Apache-2.0',
@@ -269,5 +284,38 @@ EOD;
         ];
 
         return array_combine($licenses, $licenses);
+    }
+
+    /**
+     * @param $src
+     * @param $dst
+     */
+    public function custom_copy($src, $dst) {
+
+        // open the source directory
+        $dir = opendir($src);
+
+        // Make the destination directory if not exist
+        @mkdir($dst);
+
+        // Loop through the files in source directory
+        while( $file = readdir($dir) ) {
+
+            if (( $file != '.' ) && ( $file != '..' )) {
+                if ( is_dir($src . '/' . $file) )
+                {
+
+                    // Recursively calling custom copy function
+                    // for sub directory
+                    self::custom_copy($src . '/' . $file, $dst . '/' . $file);
+
+                }
+                else {
+                    copy($src . '/' . $file, $dst . '/' . $file);
+                }
+            }
+        }
+
+        closedir($dir);
     }
 }
